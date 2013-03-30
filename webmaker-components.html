@@ -26,6 +26,12 @@
     (function(global){
       var components = [];
       global.WebMaker = {
+        loadScript: function loadScript(url, callback) {
+          var script = document.createElement("script");
+          script.onload = callback;
+          script.src = url;
+          document.head.appendChild(script);
+        },
         addComponent: function addComponent(c) {
           components.push(c);
         },
@@ -187,6 +193,129 @@
     </script>
   </element>
 
+  <!--
+    text pop event.
+  -->
+
+  <h2>webmaker-3d</h2>
+
+  <p>The webmaker-3d element can be used to put 3D elements on your page, which --if you also have
+    a media element and assign it a start and end time-- will play alongside your video
+    between the indicated start and end times.</p>
+
+  <h3>attributes:</h3>
+  <dl>
+    <dt>start</dt>
+    <dd>Optional start time, if used in conjunction with a media element.</dd>
+
+    <dt>end</dt>
+    <dd>Optional end time, if used in conjunction with a media element.</dd>
+  </dl>
+
+  <element name="webmaker-3d" attributes="start end collada width height">
+    <template>
+      <canvas></canvas>
+    </template>
+
+    <script>
+      this.register({
+        prototype: {
+          readyCallback: function() {
+            var cubicVRInstance;
+            var cubicVRMainLoop;
+            var cubicVRScene;
+            var cubicVRMVC;
+            
+            var element = this;
+            var canvas = document.createElement('canvas');
+
+            canvas.width = this.getAttribute("width") || 500;
+            canvas.height = this.getAttribute("height") || 500;
+
+            console.log();
+
+            canvas.style.width = canvas.width + "px";
+            canvas.style.height = canvas.height + "px";
+
+            element.appendChild(canvas);
+
+            function initElement() {
+              var contextName = 'WebmakerCubicVRContext' + Object.keys(CubicVR.contexts).length;
+              var colladaSceneRoot;
+              var colladaUrl;
+
+              canvas.id = contextName;
+              cubicVRInstance = CubicVR.init({
+                canvas: canvas,
+                context: contextName
+              });
+
+              if (element.hasAttribute("collada")) {
+                colladaUrl = element.getAttribute("collada");
+                colladaSceneRoot = element.hasAttribute("colladaBase") ? element.getAttribute("colladaBase") : colladaUrl.substr(0, colladaUrl.lastIndexOf("/")) + "/";
+                cubicVRScene = cubicVRInstance.loadCollada(colladaUrl, colladaSceneRoot);
+                cubicVRScene.resize(canvas.width, canvas.height);
+              }
+
+              if (!cubicVRScene) {
+                cubicVRScene = cubicVRInstance.Scene(canvas.width, canvas.height, 45);
+              }
+
+              cubicVRScene.camera = new cubicVRInstance.Camera({
+                position: element.hasAttribute("camera") ? element.getAttribute("camera").split(",").map(function (x) { return Number(x) }) : null,
+                target: element.hasAttribute("target") ? element.getAttribute("target").split(",").map(function (x) { return Number(x) }) : null,
+                width: cubicVRScene.camera.width, 
+                height: cubicVRScene.camera.height, 
+                fov: cubicVRScene.camera.fov,
+                aspect: cubicVRScene.camera.aspect,
+                targeted: element.hasAttribute("target")               
+              });
+
+              cubicVRInstance.setGlobalAmbient([0.2, 0.2, 0.2]);
+
+              cubicVRMVC = new cubicVRInstance.MouseViewController(canvas, cubicVRScene.camera);
+              cubicVRMainLoop = new cubicVRInstance.MainLoop( function (timer, gl) {
+                cubicVRScene.render();
+              });
+            }
+
+            if (!window.CubicVR) {
+              WebMaker.loadScript('lib/CubicVR.js', initElement);
+            }
+            else {
+              initElement();
+            }
+
+            if (document.querySelectorAll("webmaker-media").length > 0) {
+              var start = this.attributes.getNamedItem("start").nodeValue;
+              var end = this.attributes.getNamedItem("end").nodeValue;
+              
+              Popcorn(function(){
+                Popcorn.plugin('cubicvr', (function(){
+                  return {
+                    _setup: function(options) {
+
+                    },
+                    start: function(options) {
+
+                    },
+                    end: function(options) {
+
+                    }
+                  };
+                }()));
+              });
+
+            }
+
+            this.style.display = "block";
+
+            WebMaker.addComponent(this);
+          }
+        }
+      });
+    </script>
+  </element>
 
   <!--
     text pop event.
