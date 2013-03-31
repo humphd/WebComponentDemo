@@ -193,6 +193,95 @@
     </script>
   </element>
 
+  <h2>webmaker-fb-comments</h2>
+
+  <p>The webmaker-fb-comments element can be used to put Facebook comments on your page, which --if you also have
+    a media element and assign it a start and end time-- will play alongside your video
+    between the indicated start and end times.</p>
+
+  <h3>attributes:</h3>
+  <dl>
+    <dt>start</dt>
+    <dd>Optional start time, if used in conjunction with a media element.</dd>
+
+    <dt>end</dt>
+    <dd>Optional end time, if used in conjunction with a media element.</dd>
+  </dl>
+
+  <element name="webmaker-fbcomments" attributes="start end width height numposts colorscheme">
+    <template>
+      <canvas></canvas>
+    </template>
+
+    <script>
+      this.register({
+        prototype: {
+          readyCallback: function() {
+
+            var element = this,
+                width = window.getComputedStyle( element, null).getPropertyValue( "width" ),
+                height = window.getComputedStyle( element, null).getPropertyValue( "height" ),
+                fbRoot = document.getElementById( "fb-root" ),
+                fbComments = document.createElement( "div" );
+
+            fbComments.style.width = width + "px";
+            fbComments.style.height = height + "px";
+            fbComments.setAttribute( "data-href", window.location );
+            fbComments.setAttribute( "data-width", width );
+            fbComments.setAttribute( "data-height", height );
+            fbComments.setAttribute( "data-num-posts", element.getAttribute( "numposts" ) || 10 );
+            if ( element.getAttribute( "colorscheme" ) === "dark" ) {
+              fbComments.setAttribute( "data-colorscheme", "dark" );
+            }
+
+            element.appendChild( fbComments );
+
+            if ( !fbRoot ) {
+              var fbScript = document.createElement( "script" ),
+                  fbJS = "                                                \
+                (function(d, s, id) {                                     \
+                  var js, fjs = d.getElementsByTagName(s)[0];             \
+                  if (d.getElementById(id)) return;                       \
+                  js = d.createElement(s); js.id = id;                    \
+                  js.src = '//connect.facebook.net/en_US/all.js#xfbml=1'; \
+                  fjs.parentNode.insertBefore(js, fjs);                   \
+                }(document, 'script', 'facebook-jssdk'));"
+              fbScript.textContent = fbJS;
+              document.body.appendChild( fbRoot );
+              document.head.appendChild( fbScript );
+            }
+
+            if ( document.querySelectorAll("webmaker-media").length > 0 ) {
+              var start = this.attributes.getNamedItem("start").nodeValue;
+              var end = this.attributes.getNamedItem("end").nodeValue;
+
+              Popcorn(function(){
+                Popcorn.plugin('fb-comments', (function(){
+                  return {
+                    _setup: function(options) {
+
+                    },
+                    start: function(options) {
+
+                    },
+                    end: function(options) {
+
+                    }
+                  };
+                }()));
+              });
+
+            }
+
+            this.style.display = "block";
+
+            WebMaker.addComponent(this);
+          }
+        }
+      });
+    </script>
+  </element>
+
   <!--
     text pop event.
   -->
