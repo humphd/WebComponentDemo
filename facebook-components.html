@@ -1,0 +1,52 @@
+
+  <element name="facebook-comments" attributes="start end width height numposts colorscheme">
+    <template>
+      <div class="fb-comments"></div>
+    </template>
+
+    <script>
+      var template = this.querySelector( "template" );
+
+      this.register({
+        prototype: {
+          readyCallback: function() {
+            var element = this;
+            element.innerHTML = template.innerHTML;
+
+            var width = window.getComputedStyle( element, null).getPropertyValue( "width" ),
+                height = window.getComputedStyle( element, null).getPropertyValue( "height" ),
+                fbRoot = document.getElementById( "fb-root" ),
+                fbComments = element.querySelector( ".fb-comments" );
+
+            fbComments.style.width = width + "px";
+            fbComments.style.height = height + "px";
+            fbComments.setAttribute( "data-href", window.location );
+            fbComments.setAttribute( "data-width", width );
+            fbComments.setAttribute( "data-height", height );
+            fbComments.setAttribute( "data-num-posts", element.getAttribute( "numposts" ) || 10 );
+            if ( element.getAttribute( "colorscheme" ) === "dark" ) {
+              fbComments.setAttribute( "data-colorscheme", "dark" );
+            }
+
+            if ( !fbRoot ) {
+              fbRoot = document.createElement( "div" );
+              fbRoot.id = "fb-root";
+              document.body.appendChild( fbRoot );
+
+              var js, fjs = document.getElementsByTagName( "script" )[ 0 ];
+              if ( document.getElementById( "facebook-jssdk" ) ) {
+                return;
+              }
+              js = document.createElement( "script" );
+              js.id = "facebook-jssdk";
+              js.async = true;
+              js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+              fjs.parentNode.insertBefore(js, fjs);
+            }
+
+            this.style.display = "block";
+          }
+        }
+      });
+    </script>
+  </element>
